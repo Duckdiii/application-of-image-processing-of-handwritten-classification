@@ -1,0 +1,1 @@
+﻿"# Placeholder: adaptive thresholding\n"
