@@ -6,7 +6,9 @@ import os
 import numpy as np
 
 # Import các hàm xử lý từ src (Backend)
-from src.preprocessing.grayscale import apply_grayscale
+
+from src.preprocessing.morphology.grayscale import apply_grayscale
+
 from src.preprocessing.filters.gaussian_blur import apply_gaussian_blur
 from src.preprocessing.filters.median_filter import apply_median_filter
 from src.preprocessing.morphology.dilation import apply_dilation
