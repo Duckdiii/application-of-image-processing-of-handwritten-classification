@@ -1,3 +1,5 @@
+from segmentation_ui import SegmentationUI
+from classification_ui import ClassificationUI
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
@@ -26,6 +28,7 @@ class ImageProcessingApp:
         self.processed_cv_image = None  # Dùng để lưu và reset ảnh
         self.current_folder_path = ""
         self.current_mode = None
+        self.image_path = None
 
         self.setup_ui()
 
@@ -89,7 +92,7 @@ class ImageProcessingApp:
             "dilation")).pack(fill="x", padx=20, pady=2)
         tk.Button(self.frame_controls, text="Erosion (Co)", command=lambda: self.set_mode(
             "erosion")).pack(fill="x", padx=20, pady=2)
-
+        
         # Slider điều chỉnh tham số (Kernel size)
         tk.Label(self.frame_controls, text="Kích thước Kernel / Mức độ:",
                  bg="#5DADE2").pack(pady=(20, 5))
@@ -97,7 +100,12 @@ class ImageProcessingApp:
                                       orient="horizontal", bg="#5DADE2", command=self.on_slider_change)
         self.slider_kernel.set(3)
         self.slider_kernel.pack(fill="x", padx=20)
+        # Nút segmentation và classification model
+        tk.Button(self.frame_controls, text="Segmentation (Tách ký tự)", 
+            command=self.open_segmentation_window).pack(fill="x", padx=20, pady=2)
 
+        tk.Button(self.frame_controls, text="Classification (Nhận diện)", 
+            command=self.open_classification_window).pack(fill="x", padx=20, pady=2)
         # --- 4. KHUNG GALLERY ẢNH (BOTTOM) ---
         self.frame_gallery = tk.Frame(self.root, bg="#F4D03F", height=200)
         self.frame_gallery.grid(
@@ -127,6 +135,22 @@ class ImageProcessingApp:
 
         self.canvas_gallery.pack(side="top", fill="both", expand=True)
         self.scrollbar_gallery.pack(side="bottom", fill="x")
+    def open_segmentation_window(self):
+        if self.image_path is None:
+            import tkinter.messagebox as msg
+            msg.showwarning("Cảnh báo", "Vui lòng mở ảnh trước khi segmentation!")
+            return
+
+        seg_window = tk.Toplevel(self.root)
+        SegmentationUI(seg_window, self.image_path)
+    def open_classification_window(self):
+        if self.image_path is None:
+            import tkinter.messagebox as msg
+            msg.showwarning("Cảnh báo", "Vui lòng mở ảnh trước khi classification!")
+            return
+
+        clf_window = tk.Toplevel(self.root)
+        ClassificationUI(clf_window, self.image_path)
 
     def load_folder(self):
         folder_selected = filedialog.askdirectory()
@@ -161,7 +185,26 @@ class ImageProcessingApp:
 
         except Exception as e:
             messagebox.showerror("Lỗi", f"Không thể đọc thư mục: {e}")
+    def open_image(self):
+        from tkinter import filedialog
+        import cv2
 
+        file_path = filedialog.askopenfilename(
+            filetypes=[("Image files", "*.jpg *.png *.jpeg")]
+        )
+
+        if not file_path:
+            return
+
+        # ✅ LƯU ĐƯỜNG DẪN ẢNH (CÁI BẠN ĐANG THIẾU)
+        self.image_path = file_path
+
+        # Load ảnh
+        self.original_image = cv2.imread(file_path)
+        self.processed_image = self.original_image.copy()
+
+        # Hiển thị ảnh
+        self.display_image(self.original_image)
     def display_original(self, image_path):
         """Đọc và hiển thị ảnh gốc, đồng thời reset ảnh xử lý."""
         try:
@@ -182,6 +225,9 @@ class ImageProcessingApp:
             # THAY ĐỔI CHÍNH: Reset chế độ xử lý.
             # Loại bỏ dòng tự động gọi process_image() ở đây.
             self.current_mode = None
+
+            self.image_path = image_path
+
 
         except Exception as e:
             messagebox.showerror("Lỗi hiển thị", f"Không thể tải ảnh: {e}")
