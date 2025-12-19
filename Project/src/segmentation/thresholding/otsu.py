@@ -1,11 +1,18 @@
-﻿import cv2
+import cv2
+
 
 def apply_otsu_threshold(image):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    """Otsu threshold cho cả ảnh xám và BGR."""
+    if len(image.shape) == 2:
+        gray = image
+    else:
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     _, binary = cv2.threshold(
-        gray, 0, 255,
-        cv2.THRESH_BINARY + cv2.THRESH_OTSU
+        gray,
+        0,
+        255,
+        cv2.THRESH_BINARY + cv2.THRESH_OTSU,
     )
 
     return binary

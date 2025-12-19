@@ -1,4 +1,4 @@
-﻿from segmentation_ui import SegmentationUI
+from segmentation_ui import SegmentationUI
 from classification_ui import ClassificationUI
 import tkinter as tk
 from tkinter import ttk
@@ -7,6 +7,8 @@ from PIL import Image, ImageTk
 import cv2
 import os
 import numpy as np
+
+# Import cÃ¡c hÃ m xá»­ lÃ½ tá»« src (Backend)
 
 from src.preprocessing.morphology.grayscale import apply_grayscale
 
@@ -19,7 +21,7 @@ from src.preprocessing.morphology.erosion import apply_erosion
 class ImageProcessingApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("ứng dụng Xử lý ảnh - Digital Image Processing")
+        self.root.title("Ứng dụng Xử lý ảnh - Digital Image Processing")
         self.root.geometry("1200x800")
 
         # Biáº¿n lÆ°u trá»¯ áº£nh (OpenCV format: BGR hoáº·c Grayscale)
@@ -67,22 +69,8 @@ class ImageProcessingApp:
             row=0, column=2, rowspan=2, sticky="nsew", padx=2, pady=2)
         self.frame_controls.pack_propagate(False)
 
-        tk.Label(self.frame_controls, text="Bảng Điều Khiển",
-                 bg="#5DADE2", font=("Arial", 14, "bold")).pack(pady=(12, 10))
-
-        # N?t ch?n th? m?c
-        tk.Button(self.frame_controls, text="Chọn Thư Mục Ảnh", command=self.load_folder,
-                  height=2, bg="white").pack(fill="x", padx=10, pady=(0, 8))
-
-        # N?t L?u v? Reset
-        tk.Button(self.frame_controls, text="Lưu Ảnh Xử Lý", command=self.save_image_preprocessing,
-                  height=2, bg="#2ECC71", fg="white").pack(fill="x", padx=10, pady=(4, 4))
-        tk.Button(self.frame_controls, text="Reset Ảnh", command=self.reset_image,
-                  height=1, bg="#E74C3C", fg="white").pack(fill="x", padx=10, pady=(4, 10))
-
-        # C?c n?t ch?c n?ng x? l?
         tk.Label(self.frame_controls, text="Chọn thuật toán:",
-                 bg="#5DADE2").pack(pady=(6, 4))
+                 bg="#5DADE2").pack(pady=(10, 5))
         tk.Button(self.frame_controls, text="Grayscale", command=lambda: self.set_mode(
             "gray")).pack(fill="x", padx=20, pady=2)
         tk.Button(self.frame_controls, text="Gaussian Blur", command=lambda: self.set_mode(
@@ -95,195 +83,7 @@ class ImageProcessingApp:
             "erosion")).pack(fill="x", padx=20, pady=2)
         
         # Slider ?i?u ch?nh tham s? (Kernel size)
-        tk.Label(self.frame_controls, text="Kích thước Kernel / Mức ??:",
-                bg="#5DADE2").pack(pady=(12, 4))
-        self.slider_kernel = tk.Scale(self.frame_controls, from_=1, to=21,
-                                    orient="horizontal", bg="#5DADE2", command=self.on_slider_change)
-        self.slider_kernel.set(3)
-        self.slider_kernel.pack(fill="x", padx=20, pady=(0, 6))
-        tk.Button(self.frame_controls, text="Áp dụng & Gi? (Chain)",
-            command=self.apply_and_commit,
-            bg="#27AE60", fg="white").pack(fill="x", padx=20, pady=(6, 2))
-
-        tk.Button(self.frame_controls, text="Xem thử (Test)",
-            command=self.test_current_mode,
-            bg="#F39C12", fg="white").pack(fill="x", padx=20, pady=(2, 8))
-        #   N?t segmentation v? classification model
-        tk.Button(self.frame_controls, text="Segmentation (Phân đoạn)", 
-            command=self.open_segmentation_window).pack(fill="x", padx=20, pady=2)
-
-        tk.Button(self.frame_controls, text="Classification (Phân loại)", 
-            command=self.open_classification_window).pack(fill="x", padx=20, pady=6)
-        # --- KHU V?C BATCH PREPROCESSING CHO TO?N B? DATASET ---
-        batch_frame = tk.LabelFrame(
-            self.frame_controls,
-            text="Batch Preprocessing (toàn bộ thư mục)",
-            bg="#5DADE2", fg="black", labelanchor="n"
-        )
-        batch_frame.pack(fill="x", padx=10, pady=(10, 8))
-
-        # ===== BI?N CHECKBOX =====
-        self.var_batch_gray = tk.BooleanVar(value=True)
-        self.var_batch_gaussian = tk.BooleanVar(value=False)
-        self.var_batch_median = tk.BooleanVar(value=False)
-        self.var_batch_dilation = tk.BooleanVar(value=False)
-        self.var_batch_erosion = tk.BooleanVar(value=False)
-
-        # ===== GRAYSCALE =====
-        row_gray = tk.Frame(batch_frame, bg="#5DADE2")
-        row_gray.pack(fill="x", padx=5, pady=1)
-        tk.Checkbutton(row_gray, text="Grayscale",
-                       variable=self.var_batch_gray,
-                       bg="#5DADE2").pack(side="left", anchor="w")
-
-        # ===== GAUSSIAN BLUR =====
-        row_g = tk.Frame(batch_frame, bg="#5DADE2")
-        row_g.pack(fill="x", padx=5, pady=1)
-        tk.Checkbutton(row_g, text="Gaussian Blur",
-                       variable=self.var_batch_gaussian,
-                       bg="#5DADE2").pack(side="left")
-        tk.Label(row_g, text="k:", bg="#5DADE2").pack(side="left", padx=(10, 2))
-        self.entry_k_gaussian = tk.Entry(row_g, width=4)
-        self.entry_k_gaussian.insert(0, "3")
-        self.entry_k_gaussian.pack(side="left")
-
-        # ===== MEDIAN FILTER =====
-        row_m = tk.Frame(batch_frame, bg="#5DADE2")
-        row_m.pack(fill="x", padx=5, pady=1)
-        tk.Checkbutton(row_m, text="Median Filter",
-                       variable=self.var_batch_median,
-                       bg="#5DADE2").pack(side="left")
-        tk.Label(row_m, text="k:", bg="#5DADE2").pack(side="left", padx=(10, 2))
-        self.entry_k_median = tk.Entry(row_m, width=4)
-        self.entry_k_median.insert(0, "3")
-        self.entry_k_median.pack(side="left")
-
-        # ===== DILATION =====
-        row_d = tk.Frame(batch_frame, bg="#5DADE2")
-        row_d.pack(fill="x", padx=5, pady=1)
-        tk.Checkbutton(row_d, text="Dilation (Giãn)",
-                       variable=self.var_batch_dilation,
-                       bg="#5DADE2").pack(side="left")
-        tk.Label(row_d, text="k:", bg="#5DADE2").pack(side="left", padx=(10, 2))
-        self.entry_k_dilation = tk.Entry(row_d, width=4)
-        self.entry_k_dilation.insert(0, "3")
-        self.entry_k_dilation.pack(side="left")
-
-        # ===== EROSION =====
-        row_e = tk.Frame(batch_frame, bg="#5DADE2")
-        row_e.pack(fill="x", padx=5, pady=1)
-        tk.Checkbutton(row_e, text="Erosion (Co)",
-                       variable=self.var_batch_erosion,
-                       bg="#5DADE2").pack(side="left")
-        tk.Label(row_e, text="k:", bg="#5DADE2").pack(side="left", padx=(10, 2))
-        self.entry_k_erosion = tk.Entry(row_e, width=4)
-        self.entry_k_erosion.insert(0, "3")
-        self.entry_k_erosion.pack(side="left")
-
-        # N?t ch?y batch
-        tk.Button(batch_frame, text="X? l? to?n b? th? m?c",
-                command=self.batch_preprocess_folder,
-                bg="#1ABC9C", fg="white").pack(fill="x", padx=5, pady=(8, 5))
-        # Progress bar
-        self.batch_progress = ttk.Progressbar(
-            batch_frame,
-            orient="horizontal",
-            length=200,
-            mode="determinate"
-        )
-        self.batch_progress.pack(fill="x", padx=5, pady=(5, 2))
-
-        self.lbl_batch_percent = tk.Label(
-            batch_frame, text="0%", bg="#5DADE2"
-        )
-        self.lbl_batch_percent.pack(anchor="center")
-        # --- 4. KHUNG GALLERY ?NH (BOTTOM) ---
-        self.frame_gallery = tk.Frame(self.root, bg="#F4D03F", height=200)
-        self.frame_gallery.grid(
-            row=1, column=0, columnspan=2, sticky="nsew", padx=2, pady=2)
-
-        tk.Label(self.frame_gallery, text="Danh sách ảnh trong thư mục", bg="#F4D03F", font=(
-            "Arial", 10, "bold")).pack(anchor="nw", padx=5, pady=2)
-
-        # Canvas v? Scrollbar (?? hi?n th? d?ng th? vi?n ngang)
-        self.canvas_gallery = tk.Canvas(self.frame_gallery, bg="#F4D03F")
-        self.scrollbar_gallery = tk.Scrollbar(
-            self.frame_gallery, orient="vertical", command=self.canvas_gallery.yview
-        )
-
-        # Gallery Content Frame
-        self.gallery_content = tk.Frame(self.canvas_gallery, bg="#F4D03F")
-
-        # C?n bind ?? c?p nh?t scrollregion khi n?i dung thay ??i
-        self.gallery_content.bind("<Configure>", lambda e: self.canvas_gallery.configure(
-            scrollregion=self.canvas_gallery.bbox("all")))
-
-        # Th?m gallery_content v?o canvas
-        # NOTE: Thay v? d?ng pack, ch?ng ta d?ng create_window ?? gallery_content c? th? cu?n ngang
-        self.canvas_gallery.create_window(
-            (0, 0), window=self.gallery_content, anchor="nw")
-        self.canvas_gallery.configure(
-            yscrollcommand=self.scrollbar_gallery.set )
-
-        self.canvas_gallery.pack(side="left", fill="both", expand=True)
-        self.scrollbar_gallery.pack(side="right", fill="y")
-
-    def open_segmentation_window(self):
-        if self.image_path is None:
-            messagebox.showwarning("Cảnh báo", "Vui lòng mở ảnh trước khi segmentation!")
-            return
-        seg_window = tk.Toplevel(self.root)
-        SegmentationUI(seg_window, self.image_path)
-
-    def open_classification_window(self):
-        if self.image_path is None:
-            messagebox.showwarning("Cảnh báo", "Vui lòng mở ảnh trước khi classification!")
-            return
-        clf_window = tk.Toplevel(self.root)
-        ClassificationUI(clf_window, self.image_path)
-    def load_folder(self):
-        folder_selected = filedialog.askdirectory()
-        if folder_selected:
-            self.current_folder_path = folder_selected
-            self.load_images_to_gallery()
-
-    def load_images_to_gallery(self):
-        for widget in self.gallery_content.winfo_children():
-            widget.destroy()
-
-        valid_extensions = [".jpg", ".jpeg", ".png", ".bmp"]
-        try:
-            files = [
-                f for f in os.listdir(self.current_folder_path)
-                if os.path.splitext(f)[1].lower() in valid_extensions
-            ]
-
-            max_columns = 9
-            row = 0
-            col = 0
-
-            for f in files:
-                path = os.path.join(self.current_folder_path, f)
-                img = Image.open(path)
-                img.thumbnail((80, 80))
-                photo = ImageTk.PhotoImage(img)
-
-                btn = tk.Button(
-                    self.gallery_content,
-                    image=photo,
-                    command=lambda p=path: self.display_original(p)
-                )
-                btn.image = photo
-
-                btn.grid(row=row, column=col, padx=5, pady=5)
-
-                col += 1
-                if col >= max_columns:
-                    col = 0
-                    row += 1
-
-        except Exception as e:
-            messagebox.showerror("Lỗi", f"Không thể đọc thư mục: {e}")
+        tk.Label(self.frame_controls, text="Chọn thuật toán:", f"KhÃ´ng thá»ƒ Ä‘á»c thÆ° má»¥c: {e}")
     def open_image(self):
         from tkinter import filedialog
         import cv2
@@ -305,50 +105,62 @@ class ImageProcessingApp:
         # Hiá»ƒn thá»‹ áº£nh
         self.display_image(self.original_image)
     def display_original(self, image_path):
+        """Äá»c vÃ  hiá»ƒn thá»‹ áº£nh gá»‘c, Ä‘á»“ng thá»i reset áº£nh xá»­ lÃ½."""
         try:
+            # Äá»c áº£nh báº±ng OpenCV
             self.original_cv_image = cv2.imread(image_path)
             self.original_cv_image_backup = self.original_cv_image.copy()
+            # Khá»Ÿi táº¡o áº£nh xá»­ lÃ½ báº±ng cÃ¡ch sao chÃ©p áº£nh gá»‘c
             self.original_cv_image = self.original_cv_image_backup.copy()
             self.processed_cv_image = self.original_cv_image_backup.copy()
             self.mode_input_image = self.processed_cv_image.copy()
 
+            # Convert BGR (OpenCV) to RGB (Pillow) Ä‘á»ƒ hiá»ƒn thá»‹
             img_rgb = cv2.cvtColor(self.original_cv_image, cv2.COLOR_BGR2RGB)
 
+            # Hiá»ƒn thá»‹ áº£nh gá»‘c
             self.show_image_on_label(img_rgb, self.lbl_original_img)
 
+            # Hiá»ƒn thá»‹ áº£nh xá»­ lÃ½ LÃ€M áº¢NH Gá»C (Tráº¡ng thÃ¡i chÆ°a xá»­ lÃ½)
             self.show_image_on_label(img_rgb, self.lbl_processed_img)
 
+            # THAY Äá»”I CHÃNH: Reset cháº¿ Ä‘á»™ xá»­ lÃ½.
+            # Loáº¡i bá» dÃ²ng tá»± Ä‘á»™ng gá»i process_image() á»Ÿ Ä‘Ã¢y.
             self.current_mode = None
 
             self.image_path = image_path
 
 
         except Exception as e:
-            messagebox.showerror("Lỗi hiển thị", f"Không thể tải ảnh: {e}")
+            messagebox.showerror("Lá»—i hiá»ƒn thá»‹", f"KhÃ´ng thá»ƒ táº£i áº£nh: {e}")
 
     def reset_image(self):
+        """Äáº·t láº¡i áº£nh Ä‘ang xá»­ lÃ½ thÃ nh áº£nh gá»‘c."""
         if self.original_cv_image_backup is not None:
+            # Sao chÃ©p láº¡i áº£nh gá»‘c Ä‘á»ƒ reset
             self.original_cv_image = self.original_cv_image_backup.copy()
             self.processed_cv_image = self.original_cv_image_backup.copy()
             self.mode_input_image = self.processed_cv_image.copy()
 
+            # Chuyá»ƒn Ä‘á»•i Ä‘á»ƒ hiá»ƒn thá»‹
             img_rgb = cv2.cvtColor(self.processed_cv_image, cv2.COLOR_BGR2RGB)
             self.show_image_on_label(img_rgb, self.lbl_processed_img)
             self.current_mode = None
-            messagebox.showinfo("Thông báo", "Đã reset ảnh thành công.")
+            messagebox.showinfo("ThÃ´ng bÃ¡o", "ÄÃ£ reset áº£nh thÃ nh cÃ´ng.")
         else:
-            messagebox.showwarning("Cảnh báo", "Không có ảnh gốc để reset.")
+            messagebox.showwarning("Cáº£nh bÃ¡o", "KhÃ´ng cÃ³ áº£nh gá»‘c Ä‘á»ƒ reset.")
 
     
     def save_image_preprocessing(self):
-        """Lưu ảnh đã xử lý vào thư mục preprocessing."""
+        """LÆ°u áº£nh Ä‘Ã£ xá»­ lÃ½ vÃ o thÆ° má»¥c preprocessing."""
         if self.processed_cv_image is None:
-            messagebox.showwarning("Cảnh báo", "Chưa có ảnh xử lý để lưu.")
+            messagebox.showwarning("Cáº£nh bÃ¡o", "ChÆ°a cÃ³ áº£nh xá»­ lÃ½ Ä‘á»ƒ lÆ°u.")
             return
 
         save_dir = r"D:\Data\Python\digital-image-processing\archive\preprocessing"
         os.makedirs(save_dir, exist_ok=True)
 
+        # Ä‘áº·t tÃªn file dá»±a trÃªn áº£nh gá»‘c (náº¿u cÃ³)
         if self.image_path:
             base_name = os.path.basename(self.image_path)
             name, ext = os.path.splitext(base_name)
@@ -358,21 +170,27 @@ class ImageProcessingApp:
 
         save_path = os.path.join(save_dir, filename)
 
+        # náº¿u áº£nh lÃ  RGB, chuyá»ƒn vá» BGR trÆ°á»›c khi lÆ°u báº±ng OpenCV
         img_to_save = self.processed_cv_image
         if len(img_to_save.shape) == 3 and img_to_save.shape[2] == 3:
+            # giáº£ sá»­ Ä‘ang lÃ  BGR sáºµn tá»« OpenCV, náº¿u báº¡n Ä‘ang lÆ°u RGB thÃ¬ Ä‘á»•i láº¡i
             pass
 
         cv2.imwrite(save_path, img_to_save)
-        messagebox.showinfo("Thông báo", f"Đã lưu ảnh tại:\n{save_path}")
-
+        messagebox.showinfo("ThÃ´ng bÃ¡o", f"ÄÃ£ lÆ°u áº£nh táº¡i:\n{save_path}")
+    
     def show_image_on_label(self, cv_image_rgb, label_widget):
         h, w, _ = cv_image_rgb.shape
 
+        # --- Sá»¬A Lá»–I á»ž ÄÃ‚Y ---
+        # Láº¥y kÃ­ch thÆ°á»›c cá»§a Frame cha (Parent) chá»©a cÃ¡i Label Ä‘Ã³
+        # Frame cha Ä‘Æ°á»£c set grid sticky="nsew" nÃªn kÃ­ch thÆ°á»›c nÃ³ sáº½ á»•n Ä‘á»‹nh
         parent_frame = label_widget.master
 
         frame_width = parent_frame.winfo_width()
         frame_height = parent_frame.winfo_height()
 
+        # Fallback: Náº¿u chÆ°a render xong (kÃ­ch thÆ°á»›c = 1) thÃ¬ láº¥y máº·c Ä‘á»‹nh 400
         if frame_width < 100:
             frame_width = 400
         if frame_height < 100:
@@ -380,6 +198,7 @@ class ImageProcessingApp:
 
         scale_w = frame_width / w
         scale_h = frame_height / h
+        # Giáº£m 10% Ä‘á»ƒ táº¡o lá» thoÃ¡ng hÆ¡n chÃºt
         scale = min(scale_w, scale_h) * 0.90
 
         new_w = int(w * scale)
@@ -401,6 +220,7 @@ class ImageProcessingApp:
             self.mode_input_image = self.processed_cv_image.copy()
         elif self.original_cv_image is not None:
             self.mode_input_image = self.original_cv_image.copy()
+        # Khi Ä‘á»•i ká»¹ thuáº­t, náº¿u Ä‘Ã£ cÃ³ áº£nh thÃ¬ preview trÃªn áº£nh hiá»‡n táº¡i
         if self.original_cv_image is not None:
             self.test_current_mode()
 
@@ -411,19 +231,15 @@ class ImageProcessingApp:
     def process_image(self):
         self.test_current_mode()
     def _get_kernel_from_entry(self, entry_widget):
-        """Parse kernel value from entry; ensure odd and positive, fallback to 3."""
-        try:
-            k = int(entry_widget.get().strip())
-        except Exception:
-            k = 3
-        if k <= 0:
-            k = 3
+    
+        k = int(entry_widget.get().strip())
+
         if k % 2 == 0:
             k += 1
         return k
     def batch_preprocess_folder(self):
         if not self.current_folder_path:
-            messagebox.showwarning("Cảnh báo", "Vui lòng chọn thư mục ảnh trước!")
+            messagebox.showwarning("Cáº£nh bÃ¡o", "Vui lÃ²ng chá»n thÆ° má»¥c áº£nh trÆ°á»›c!")
             return
 
         output_dir = r"D:\Data\Python\digital-image-processing\archive\preprocessing"
@@ -434,10 +250,10 @@ class ImageProcessingApp:
                 if f.lower().endswith(valid_exts)]
 
         if not files:
-            messagebox.showwarning("Thông báo", "Thư mục không có ảnh hợp lệ.")
+            messagebox.showwarning("ThÃ´ng bÃ¡o", "ThÆ° má»¥c khÃ´ng cÃ³ áº£nh há»£p lá»‡.")
             return
 
-        # ✅ Lấy KERNEL RIÊNG
+        # âœ… Láº¤Y KERNEL RIÃŠNG
         k_gaussian = self._get_kernel_from_entry(self.entry_k_gaussian)
         k_median   = self._get_kernel_from_entry(self.entry_k_median)
         k_dilation = self._get_kernel_from_entry(self.entry_k_dilation)
@@ -446,7 +262,7 @@ class ImageProcessingApp:
         total = len(files)
         count = 0
 
-        # ✅ RESET PROGRESS BAR
+        # âœ… RESET PROGRESS BAR
         self.batch_progress["value"] = 0
         self.batch_progress["maximum"] = total
         self.lbl_batch_percent.config(text="0%")
@@ -479,17 +295,18 @@ class ImageProcessingApp:
             cv2.imwrite(out_path, img)
             count += 1
 
-            # ✅ CẬP NHẬT PROGRESS
+            # âœ… Cáº¬P NHáº¬T PROGRESS
             self.batch_progress["value"] = i
             percent = int((i / total) * 100)
             self.lbl_batch_percent.config(text=f"{percent}%")
             self.root.update_idletasks()
 
         messagebox.showinfo(
-            "Hoàn thành",
-            f"Đã xử lý xong {count}/{total} ảnh.\nLưu tại:\n{output_dir}"
+            "HoÃ n thÃ nh",
+            f"ÄÃ£ xá»­ lÃ½ xong {count}/{total} áº£nh.\nLÆ°u táº¡i:\n{output_dir}"
         )
     def _apply_current_mode(self, commit=True):
+        """Ap dung ky thuat dang chon len anh xu ly; commit=True se luu ket qua."""
         if self.original_cv_image is None or self.current_mode is None:
             return
 
@@ -510,9 +327,11 @@ class ImageProcessingApp:
 
         self._show_processed(temp)
     def test_current_mode(self):
+        """Preview thu thuat tren anh hien tai va giu lai lam dau vao tiep theo."""
         self._apply_current_mode(commit=True)
 
     def apply_and_commit(self):
+        """Ap dung thuat toan va luu lam dau vao cho lan ke tiep."""
         self._apply_current_mode(commit=True)
 
     def _apply_mode(self, img, k_size):
