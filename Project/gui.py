@@ -7,6 +7,7 @@ from PIL import Image, ImageTk
 import cv2
 import os
 import numpy as np
+import config
 
 from src.preprocessing.morphology.grayscale import apply_grayscale
 
@@ -346,7 +347,7 @@ class ImageProcessingApp:
             messagebox.showwarning("Cảnh báo", "Chưa có ảnh xử lý để lưu.")
             return
 
-        save_dir = r"D:\Data\Python\digital-image-processing\archive\preprocessing"
+        save_dir = config.ARCHIVE_PREPROCESSING_DIR
         os.makedirs(save_dir, exist_ok=True)
 
         if self.image_path:
@@ -426,7 +427,7 @@ class ImageProcessingApp:
             messagebox.showwarning("Cảnh báo", "Vui lòng chọn thư mục ảnh trước!")
             return
 
-        output_dir = r"D:\Data\Python\digital-image-processing\archive\preprocessing"
+        output_dir = config.ARCHIVE_PREPROCESSING_DIR
         os.makedirs(output_dir, exist_ok=True)
 
         valid_exts = (".jpg", ".jpeg", ".png", ".bmp")

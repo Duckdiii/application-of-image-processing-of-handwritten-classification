@@ -10,7 +10,7 @@ def _crop_to_content(binary_slice):
     return x, y, w, h
 
 
-def segment_characters(line_image, min_char_width=14, min_char_height=14, pad=2):
+def segment_characters(line_image, min_char_width=15, min_char_height=15, pad=2):
 
     if len(line_image.shape) == 2:
         gray = line_image

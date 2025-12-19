@@ -3,6 +3,7 @@ from tkinter import messagebox, filedialog
 from PIL import Image, ImageTk
 import cv2
 import os
+import config
 
 from src.segmentation.thresholding.otsu import apply_otsu_threshold
 from src.segmentation.thresholding.adaptive_threshold import apply_adaptive_threshold
@@ -28,7 +29,7 @@ class SegmentationUI:
         self.update_all_images()
 
         # Mặc định hiển thị thư mục preprocessing; nếu không tồn tại thì dùng thư mục ảnh hiện tại
-        default_dataset = r"D:\Data\Python\digital-image-processing\archive\preprocessing"
+        default_dataset = config.DEFAULT_PREPROCESSING_DATASET
         folder_path = default_dataset if os.path.isdir(default_dataset) else os.path.dirname(self.image_path)
         self.load_images_to_gallery(folder_path)
 
@@ -320,7 +321,7 @@ class SegmentationUI:
 
     def save_all_results(self):
         """Lưu ảnh đã xử lý + các dòng/ký tự đã cắt vào thư mục segmentation."""
-        save_root = r"D:\Data\Python\digital-image-processing\archive\segmentation"
+        save_root = config.ARCHIVE_SEGMENTATION_DIR
         try:
             os.makedirs(save_root, exist_ok=True)
         except Exception as e:
