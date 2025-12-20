@@ -2,6 +2,37 @@ import cv2
 import numpy as np
 
 
+def resize_pad(img, target_size=(32, 32), pad_color=0):
+    """
+    Hàm phụ trợ: Resize ảnh về kích thước target_size (ví dụ 32x32)
+    nhưng vẫn giữ nguyên tỷ lệ (aspect ratio). Phần dư sẽ được thêm viền đen.
+    """
+    h, w = img.shape[:2]
+    target_h, target_w = target_size
+
+    # 1. Tính tỷ lệ scale để ảnh nằm gọn trong khung target
+    scale = min(target_h / h, target_w / w)
+    new_w = int(w * scale)
+    new_h = int(h * scale)
+
+    # 2. Resize ảnh theo tỷ lệ đã tính
+    resized = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
+    # 3. Tính toán phần viền cần thêm vào để đủ kích thước target
+    delta_w = target_w - new_w
+    delta_h = target_h - new_h
+    top, bottom = delta_h // 2, delta_h - (delta_h // 2)
+    left, right = delta_w // 2, delta_w - (delta_w // 2)
+
+    # 4. Thêm viền (mặc định màu đen = 0)
+    padded = cv2.copyMakeBorder(
+        resized, top, bottom, left, right,
+        cv2.BORDER_CONSTANT, value=pad_color
+    )
+
+    return padded
+
+
 def _crop_to_content(binary_slice):
     coords = cv2.findNonZero(binary_slice)
     if coords is None:
@@ -21,10 +52,12 @@ def segment_characters(line_image, min_char_width=15, min_char_height=15, pad=2)
 
     # Làm mượt nhẹ và threshold
     blur = cv2.GaussianBlur(gray, (3, 3), 0)
-    _, binary = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    _, binary = cv2.threshold(
+        blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
     # Nối các nét đứt nhỏ theo chiều ngang
-    binary = cv2.dilate(binary, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 1)), iterations=1)
+    binary = cv2.dilate(binary, cv2.getStructuringElement(
+        cv2.MORPH_RECT, (3, 1)), iterations=1)
 
     # Vertical Projection
     vertical_projection = np.sum(binary, axis=0)
@@ -76,6 +109,7 @@ def segment_characters(line_image, min_char_width=15, min_char_height=15, pad=2)
         char_images.append(roi)
 
         # Vẽ khung hiển thị
-        cv2.rectangle(visualization, (x_start, y_start), (x_end, y_end), (0, 0, 255), 1)
+        cv2.rectangle(visualization, (x_start, y_start),
+                      (x_end, y_end), (0, 0, 255), 1)
 
     return char_images, visualization
