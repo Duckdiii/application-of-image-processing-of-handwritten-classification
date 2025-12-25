@@ -47,6 +47,7 @@ def segment_characters(line_image, min_char_width=15, min_char_height=15, pad=2)
         chars.append((start, len(vertical_projection)))
 
     char_images = []
+    char_boxes = []
     visualization = base_color.copy()
 
     for (x1, x2) in chars:
@@ -74,8 +75,9 @@ def segment_characters(line_image, min_char_width=15, min_char_height=15, pad=2)
 
         roi = line_image[y_start:y_end, x_start:x_end]
         char_images.append(roi)
+        char_boxes.append((x_start, y_start, x_end, y_end))
 
         # Vẽ khung hiển thị
         cv2.rectangle(visualization, (x_start, y_start), (x_end, y_end), (0, 0, 255), 1)
 
-    return char_images, visualization
+    return char_images, visualization, char_boxes

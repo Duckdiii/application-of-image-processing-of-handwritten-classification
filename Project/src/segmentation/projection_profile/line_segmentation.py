@@ -41,11 +41,13 @@ def segment_lines(image):
 
     # Cắt ảnh ra thành các ảnh con
     line_images = []
+    line_spans = []
     visualization_image = vis_base.copy()
 
     for (y1, y2) in lines:
         roi = image[y1:y2, 0:image.shape[1]]
         line_images.append(roi)
+        line_spans.append((y1, y2))
         cv2.rectangle(visualization_image, (0, y1), (image.shape[1], y2), (0, 255, 0), 2)
 
-    return line_images, visualization_image
+    return line_images, visualization_image, line_spans
