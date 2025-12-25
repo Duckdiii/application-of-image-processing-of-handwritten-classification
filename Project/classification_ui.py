@@ -3,11 +3,52 @@ from tkinter import messagebox, filedialog
 from PIL import Image, ImageTk
 import cv2
 import os
+import sys
+from pathlib import Path
+
+# Thêm src folder vào path để import yolov8_model
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+
+from src.detection.yolov8_model import YOLOv8Detector
+
+# ========== YOLOv8 MODEL CONFIGURATION ==========
+# Đặt đường dẫn đến mô hình YOLOv8 của bạn tại đây
+YOLOV8_MODEL_PATH = "D:\\Data\\Python\\digital-image-processing\\result2\\runs\\result_train_det\\weights\\best.pt"
+CONFIDENCE_THRESHOLD = 0.8  
+yolo_detector = None
 
 # ========== DEMO CNN MODEL ==========
 # Sau này bạn thay bằng model thật
 def predict_with_cnn(image):
     return "A"   # giả lập kết quả
+
+
+def predict_with_yolov8(image, model_path=None):
+    """
+    Dự đoán sử dụng YOLOv8
+    
+    Args:
+        image: ảnh BGR từ cv2
+        model_path: đường dẫn đến mô hình YOLOv8
+        
+    Returns:
+        tuple: (annotated_image, detections_info, results)
+    """
+    global yolo_detector
+    
+    if model_path is None:
+        model_path = YOLOV8_MODEL_PATH
+    
+    if model_path is None:
+        raise ValueError("Vui lòng cung cấp đường dẫn đến mô hình YOLOv8!")
+    
+    if yolo_detector is None or yolo_detector.model.model_name != model_path:
+        yolo_detector = YOLOv8Detector(model_path=model_path)
+    
+    annotated_image, results = yolo_detector.detect_with_visualization(image)
+    detections_info = yolo_detector.get_detections_info(results)
+    
+    return annotated_image, detections_info, results
 
 
 class ClassificationUI:
@@ -18,6 +59,8 @@ class ClassificationUI:
 
         self.image_path = image_path
         self.original_cv_image = cv2.imread(image_path)
+        self.original_cv_image_result = self.original_cv_image.copy()
+        self.current_detections = None
 
         self.current_model_name = tk.StringVar(value="CNN Digit")
 
@@ -53,7 +96,7 @@ class ClassificationUI:
         self.frame_result.grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
 
         tk.Label(
-            self.frame_result, text="KẾT QUẢ NHẬN DIỆN (CNN Output)",
+            self.frame_result, text="KẾT QUẢ NHẬN DIỆN",
             bg="#808080", fg="white", font=("Arial", 12, "bold")
         ).pack(pady=10)
 
@@ -83,33 +126,27 @@ class ClassificationUI:
         self.frame_controls.pack_propagate(False)
 
         tk.Label(
-            self.frame_controls, text="Bảng CNN Model",
+            self.frame_controls, text="Chọn Model",
             bg="#5DADE2", font=("Arial", 14, "bold")
         ).pack(pady=20)
 
         tk.Label(
-            self.frame_controls, text="Chọn mô hình:",
-            bg="#5DADE2"
+            self.frame_controls, text="Phương pháp nhận diện:",
+            bg="#5DADE2", font=("Arial", 10, "bold")
         ).pack(pady=(10, 5))
 
-        tk.Radiobutton(
-            self.frame_controls, text="CNN Digit (MNIST)",
-            variable=self.current_model_name,
-            value="CNN Digit",
-            bg="#5DADE2"
-        ).pack(anchor="w", padx=30)
-
-        tk.Radiobutton(
-            self.frame_controls, text="CNN Character (A-Z)",
-            variable=self.current_model_name,
-            value="CNN Character",
-            bg="#5DADE2"
-        ).pack(anchor="w", padx=30)
 
         tk.Radiobutton(
             self.frame_controls, text="CNN Handwriting Custom",
             variable=self.current_model_name,
-            value="CNN Custom",
+            value="CNN Words",
+            bg="#5DADE2"
+        ).pack(anchor="w", padx=30)
+
+        tk.Radiobutton(
+            self.frame_controls, text="YOLOv8 Detection",
+            variable=self.current_model_name,
+            value="YOLOv8",
             bg="#5DADE2"
         ).pack(anchor="w", padx=30)
 
@@ -201,11 +238,56 @@ class ClassificationUI:
 
     def predict_image(self):
         try:
-            predicted_label = predict_with_cnn(self.original_cv_image)
             model_name = self.current_model_name.get()
+            
+            if model_name == "YOLOv8":
+                # Sử dụng YOLOv8
+                if YOLOV8_MODEL_PATH is None:
+                    messagebox.showerror("Lỗi", "Vui lòng đặt YOLOV8_MODEL_PATH trong code!")
+                    return
+                
+                annotated_image, detections_info, results = predict_with_yolov8(
+                    self.original_cv_image
+                )
 
-            self.result_big_label.config(text=str(predicted_label))
-            self.model_name_label.config(text=f"Model: {model_name}")
+                # Hiển thị ảnh với detection boxes
+                self.original_cv_image_result = annotated_image
+                self.show_image_on_label(annotated_image, self.lbl_original_img)
+
+                # Chỉ xuất 1 ký tự: chọn detection có confidence cao nhất
+                single_char = None
+                if detections_info:
+                    # chọn detection có confidence cao nhất
+                    best = max(detections_info, key=lambda d: d.get('confidence', 0.0))
+                    # nếu label có sẵn thì dùng label
+                    if best.get('label') is not None:
+                        single_char = str(best.get('label'))
+                    else:
+                        # fallback: crop và dùng CNN classifier trên bbox tốt nhất
+                        x1, y1, x2, y2 = best['bbox']
+                        crop = self.original_cv_image[max(0, y1):max(0, y2), max(0, x1):max(0, x2)]
+                        try:
+                            single_char = str(predict_with_cnn(crop))
+                        except Exception:
+                            single_char = None
+
+                if single_char:
+                    self.result_big_label.config(text=str(single_char))
+                    self.model_name_label.config(text=f"Model: YOLOv8")
+                else:
+                    num_detections = len(detections_info)
+                    self.result_big_label.config(text=str(num_detections))
+                    self.model_name_label.config(text=f"Phát hiện: {num_detections} objects")
+
+                # Lưu thông tin detections để hiện thị
+                self.current_detections = detections_info
+                
+            else:
+                # Sử dụng CNN Models
+                predicted_label = predict_with_cnn(self.original_cv_image)
+                self.result_big_label.config(text=str(predicted_label))
+                self.model_name_label.config(text=f"Model: {model_name}")
+                self.current_detections = None
 
         except Exception as e:
             messagebox.showerror("Lỗi", f"Lỗi dự đoán: {e}")
@@ -213,6 +295,8 @@ class ClassificationUI:
     def reset_result(self):
         self.result_big_label.config(text="?")
         self.model_name_label.config(text="Model: ---")
+        self.current_detections = None
+        self.update_original_image()
 
     def save_result(self):
         text = self.result_big_label.cget("text")
@@ -228,8 +312,19 @@ class ClassificationUI:
 
         if file_path:
             with open(file_path, "w", encoding="utf-8") as f:
-                f.write(f"Kết quả dự đoán: {text}\n")
-                f.write(f"Model: {self.current_model_name.get()}\n")
+                model_name = self.current_model_name.get()
+                f.write(f"Model: {model_name}\n")
+                
+                if model_name == "YOLOv8":
+                    f.write(f"Số lượng detections: {text}\n")
+                    if self.current_detections:
+                        f.write("\nChi tiết các detections:\n")
+                        for i, det in enumerate(self.current_detections):
+                            f.write(f"  {i+1}. BBox: {det['bbox']}, "
+                                  f"Confidence: {det['confidence']:.2f}, "
+                                  f"Size: {det['width']}x{det['height']}\n")
+                else:
+                    f.write(f"Kết quả dự đoán: {text}\n")
 
             messagebox.showinfo("Thành công", f"Đã lưu kết quả tại:\n{file_path}")
 
