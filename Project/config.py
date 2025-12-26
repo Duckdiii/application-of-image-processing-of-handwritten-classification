@@ -11,3 +11,14 @@ DEFAULT_PREPROCESSING_DATASET = ARCHIVE_PREPROCESSING_DIR
 
 # Thư mục lưu kết quả segmentation (ảnh đã xử lý, line/char crop)
 ARCHIVE_SEGMENTATION_DIR = os.path.join(BASE_DATA_DIR, "archive", "segmentation")
+
+# ============================ MODEL PATHS ============================
+# Cập nhật đường dẫn đến file model của bạn tại đây.
+# Ví dụ: "D:/models/yolov8_detection.pt"
+
+# --- Model YOLOv8 cho Object Detection ---
+YOLOV8_DETECTION_MODEL_PATH = "D:\\Data\\Python\\digital-image-processing\\result2\\runs\\result_train_det\\weights\\best.pt"
+
+# --- Model YOLOv8 cho Classification ---
+# Tải model classification của bạn và đặt đường dẫn ở đây
+YOLOV8_CLASSIFICATION_MODEL_PATH = "D:\Data\\Python\\digital-image-processing\\model\\best.pt"

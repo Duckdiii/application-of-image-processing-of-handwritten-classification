@@ -11,7 +11,7 @@ from src.segmentation.thresholding.adaptive_threshold import apply_adaptive_thre
 from src.segmentation.edge_detection.canny import apply_canny
 from src.segmentation.edge_detection.sobel import apply_sobel
 from src.segmentation.projection_profile.line_segmentation import segment_lines
-from src.segmentation.projection_profile.character_segmentation import segment_characters
+from src.segmentation.projection_profile.character_segmentation import word_segmentation
 from src.segmentation.deskew.deskew import deskew
 
 class SegmentationUI:
@@ -282,7 +282,7 @@ class SegmentationUI:
 
         print(f"Dang xu ly {len(self.cropped_lines)} dong...")
         for line_img, line_span in zip(self.cropped_lines, self.line_spans):
-            chars, _, boxes = segment_characters(line_img)
+            chars, _, boxes = word_segmentation(line_img)
             self.final_char_imgs.extend(chars)
             y_offset = line_span[0]
             for (x1, y1, x2, y2) in boxes:
@@ -610,13 +610,13 @@ class SegmentationUI:
             if self.var_batch_char.get():
                 if self.var_batch_line.get():
                     for line_img, line_span in zip(lines, line_spans):
-                        chs, _, boxes = segment_characters(line_img)
+                        chs, _, boxes = word_segmentation(line_img)
                         chars.extend(chs)
                         y_offset = line_span[0]
                         for (x1, y1, x2, y2) in boxes:
                             char_boxes.append((x1, y1 + y_offset, x2, y2 + y_offset))
                 else:
-                    chs, vis_char, boxes = segment_characters(processed)
+                    chs, vis_char, boxes = word_segmentation(processed)
                     chars.extend(chs)
                     char_boxes.extend(boxes)
                     processed_to_save = vis_char

@@ -23,11 +23,10 @@ class ImageProcessingApp:
         self.root.title("ứng dụng Xử lý ảnh - Digital Image Processing")
         self.root.geometry("1200x800")
 
-        # Biáº¿n lÆ°u trá»¯ áº£nh (OpenCV format: BGR hoáº·c Grayscale)
         self.original_cv_image = None
-        self.original_cv_image_backup = None  # Luu anh goc de reset
-        self.processed_cv_image = None  # DÃ¹ng Ä‘á»ƒ lÆ°u vÃ  reset áº£nh
-        self.mode_input_image = None  # Luu anh lam dau vao cho mode hien tai
+        self.original_cv_image_backup = None  
+        self.processed_cv_image = None  
+        self.mode_input_image = None  
         self.current_folder_path = ""
         self.current_mode = None
         self.image_path = None
@@ -35,16 +34,33 @@ class ImageProcessingApp:
         self.setup_ui()
 
     def setup_ui(self):
-        # --- C?U H?NH LAYOUT (GRID) ---
-        self.root.columnconfigure(0, weight=1)
-        self.root.columnconfigure(1, weight=1)
-        self.root.columnconfigure(2, weight=0)
-        self.root.rowconfigure(0, weight=3)
-        self.root.rowconfigure(1, weight=1)
+        # Banner Frame
+        banner_frame = tk.Frame(self.root, bg="#34495E", pady=10)
+        banner_frame.pack(fill="x", side="top")
 
-        # --- 1. KHUNG ?NH G?C ---
+        tk.Label(banner_frame, text="Đề tài: Ứng dụng xử lý ảnh trong nhận dạng chữ viết tay",
+                 font=("Arial", 20, "bold"), fg="white", bg="#34495E").pack(pady=(0, 5))
+
+        members_frame = tk.Frame(banner_frame, bg="#34495E")
+        members_frame.pack()
+
+        tk.Label(members_frame, text="Thành viên:", font=("Arial", 12, "bold"), fg="#ECF0F1", bg="#34495E").pack(side="left", padx=(20, 5))
+        tk.Label(members_frame, text="Nguyễn Đức Duy - 23110009", font=("Arial", 12), fg="white", bg="#34495E").pack(side="left", padx=10)
+        tk.Label(members_frame, text="Nguyễn Tài Huy - 23110023", font=("Arial", 12), fg="white", bg="#34495E").pack(side="left", padx=10)
+        tk.Label(members_frame, text="Phạm Gia Minh - 23110040", font=("Arial", 12), fg="white", bg="#34495E").pack(side="left", padx=10)
+
+        # Main content frame that will use grid
+        main_frame = tk.Frame(self.root)
+        main_frame.pack(fill="both", expand=True)
+        
+        main_frame.columnconfigure(0, weight=1)
+        main_frame.columnconfigure(1, weight=1)
+        main_frame.columnconfigure(2, weight=0)
+        main_frame.rowconfigure(0, weight=3)
+        main_frame.rowconfigure(1, weight=1)
+
         self.frame_original = tk.Frame(
-            self.root, bg="#A9A9A9", bd=2, relief="sunken")
+            main_frame, bg="#A9A9A9", bd=2, relief="sunken")
         self.frame_original.grid(
             row=0, column=0, sticky="nsew", padx=2, pady=2)
         tk.Label(self.frame_original, text="Ảnh Gốc (Original)",
@@ -52,9 +68,8 @@ class ImageProcessingApp:
         self.lbl_original_img = tk.Label(self.frame_original, bg="#A9A9A9")
         self.lbl_original_img.pack(expand=True)
 
-        # --- 2. KHUNG ?NH X? L? ---
         self.frame_processed = tk.Frame(
-            self.root, bg="#808080", bd=2, relief="sunken")
+            main_frame, bg="#808080", bd=2, relief="sunken")
         self.frame_processed.grid(
             row=0, column=1, sticky="nsew", padx=2, pady=2)
         tk.Label(self.frame_processed, text="Ảnh đang Xử lý (Result)",
@@ -62,8 +77,7 @@ class ImageProcessingApp:
         self.lbl_processed_img = tk.Label(self.frame_processed, bg="#808080")
         self.lbl_processed_img.pack(expand=True)
 
-        # --- 3. KHUNG CH?C N?NG (B?NG ?I?U KHI?N) ---
-        self.frame_controls = tk.Frame(self.root, bg="#5DADE2", width=250)
+        self.frame_controls = tk.Frame(main_frame, bg="#5DADE2", width=250)
         self.frame_controls.grid(
             row=0, column=2, rowspan=2, sticky="nsew", padx=2, pady=2)
         self.frame_controls.pack_propagate(False)
@@ -71,17 +85,11 @@ class ImageProcessingApp:
         tk.Label(self.frame_controls, text="Bảng Điều Khiển",
                  bg="#5DADE2", font=("Arial", 14, "bold")).pack(pady=(12, 10))
 
-        # N?t ch?n th? m?c
         tk.Button(self.frame_controls, text="Chọn Thư Mục Ảnh", command=self.load_folder,
                   height=2, bg="white").pack(fill="x", padx=10, pady=(0, 8))
-
-        # N?t L?u v? Reset
-        tk.Button(self.frame_controls, text="Lưu Ảnh Xử Lý", command=self.save_image_preprocessing,
-                  height=2, bg="#2ECC71", fg="white").pack(fill="x", padx=10, pady=(4, 4))
         tk.Button(self.frame_controls, text="Reset Ảnh", command=self.reset_image,
                   height=1, bg="#E74C3C", fg="white").pack(fill="x", padx=10, pady=(4, 10))
 
-        # C?c n?t ch?c n?ng x? l?
         tk.Label(self.frame_controls, text="Chọn thuật toán:",
                  bg="#5DADE2").pack(pady=(6, 4))
         tk.Button(self.frame_controls, text="Grayscale", command=lambda: self.set_mode(
@@ -90,32 +98,22 @@ class ImageProcessingApp:
             "gaussian")).pack(fill="x", padx=20, pady=2)
         tk.Button(self.frame_controls, text="Median Filter", command=lambda: self.set_mode(
             "median")).pack(fill="x", padx=20, pady=2)
-        tk.Button(self.frame_controls, text="Dilation (Gi?n)", command=lambda: self.set_mode(
+        tk.Button(self.frame_controls, text="Dilation (Giãn)", command=lambda: self.set_mode(
             "dilation")).pack(fill="x", padx=20, pady=2)
         tk.Button(self.frame_controls, text="Erosion (Co)", command=lambda: self.set_mode(
             "erosion")).pack(fill="x", padx=20, pady=2)
         
-        # Slider ?i?u ch?nh tham s? (Kernel size)
         tk.Label(self.frame_controls, text="Kích thước Kernel / Mức ??:",
                 bg="#5DADE2").pack(pady=(12, 4))
         self.slider_kernel = tk.Scale(self.frame_controls, from_=1, to=21,
                                     orient="horizontal", bg="#5DADE2", command=self.on_slider_change)
         self.slider_kernel.set(3)
         self.slider_kernel.pack(fill="x", padx=20, pady=(0, 6))
-        tk.Button(self.frame_controls, text="Áp dụng & Gi? (Chain)",
-            command=self.apply_and_commit,
-            bg="#27AE60", fg="white").pack(fill="x", padx=20, pady=(6, 2))
-
-        tk.Button(self.frame_controls, text="Xem thử (Test)",
-            command=self.test_current_mode,
-            bg="#F39C12", fg="white").pack(fill="x", padx=20, pady=(2, 8))
-        #   N?t segmentation v? classification model
         tk.Button(self.frame_controls, text="Segmentation (Phân đoạn)", 
             command=self.open_segmentation_window).pack(fill="x", padx=20, pady=2)
 
         tk.Button(self.frame_controls, text="Classification (Phân loại)", 
             command=self.open_classification_window).pack(fill="x", padx=20, pady=6)
-        # --- KHU V?C BATCH PREPROCESSING CHO TO?N B? DATASET ---
         batch_frame = tk.LabelFrame(
             self.frame_controls,
             text="Batch Preprocessing (toàn bộ thư mục)",
@@ -123,7 +121,6 @@ class ImageProcessingApp:
         )
         batch_frame.pack(fill="x", padx=10, pady=(10, 8))
 
-        # ===== BI?N CHECKBOX =====
         self.var_batch_gray = tk.BooleanVar(value=True)
         self.var_batch_gaussian = tk.BooleanVar(value=False)
         self.var_batch_median = tk.BooleanVar(value=False)
@@ -181,8 +178,7 @@ class ImageProcessingApp:
         self.entry_k_erosion.insert(0, "3")
         self.entry_k_erosion.pack(side="left")
 
-        # N?t ch?y batch
-        tk.Button(batch_frame, text="X? l? to?n b? th? m?c",
+        tk.Button(batch_frame, text="Xử lý toàn bộ thư mục",
                 command=self.batch_preprocess_folder,
                 bg="#1ABC9C", fg="white").pack(fill="x", padx=5, pady=(8, 5))
         # Progress bar
@@ -198,15 +194,14 @@ class ImageProcessingApp:
             batch_frame, text="0%", bg="#5DADE2"
         )
         self.lbl_batch_percent.pack(anchor="center")
-        # --- 4. KHUNG GALLERY ?NH (BOTTOM) ---
-        self.frame_gallery = tk.Frame(self.root, bg="#F4D03F", height=200)
+        # --- 4. KHUNG GALLERY NH (BOTTOM) ---
+        self.frame_gallery = tk.Frame(main_frame, bg="#F4D03F", height=200)
         self.frame_gallery.grid(
             row=1, column=0, columnspan=2, sticky="nsew", padx=2, pady=2)
 
         tk.Label(self.frame_gallery, text="Danh sách ảnh trong thư mục", bg="#F4D03F", font=(
             "Arial", 10, "bold")).pack(anchor="nw", padx=5, pady=2)
 
-        # Canvas v? Scrollbar (?? hi?n th? d?ng th? vi?n ngang)
         self.canvas_gallery = tk.Canvas(self.frame_gallery, bg="#F4D03F")
         self.scrollbar_gallery = tk.Scrollbar(
             self.frame_gallery, orient="vertical", command=self.canvas_gallery.yview
@@ -215,12 +210,10 @@ class ImageProcessingApp:
         # Gallery Content Frame
         self.gallery_content = tk.Frame(self.canvas_gallery, bg="#F4D03F")
 
-        # C?n bind ?? c?p nh?t scrollregion khi n?i dung thay ??i
         self.gallery_content.bind("<Configure>", lambda e: self.canvas_gallery.configure(
             scrollregion=self.canvas_gallery.bbox("all")))
 
-        # Th?m gallery_content v?o canvas
-        # NOTE: Thay v? d?ng pack, ch?ng ta d?ng create_window ?? gallery_content c? th? cu?n ngang
+
         self.canvas_gallery.create_window(
             (0, 0), window=self.gallery_content, anchor="nw")
         self.canvas_gallery.configure(
@@ -438,7 +431,6 @@ class ImageProcessingApp:
             messagebox.showwarning("Thông báo", "Thư mục không có ảnh hợp lệ.")
             return
 
-        # ✅ Lấy KERNEL RIÊNG
         k_gaussian = self._get_kernel_from_entry(self.entry_k_gaussian)
         k_median   = self._get_kernel_from_entry(self.entry_k_median)
         k_dilation = self._get_kernel_from_entry(self.entry_k_dilation)
@@ -447,7 +439,6 @@ class ImageProcessingApp:
         total = len(files)
         count = 0
 
-        # ✅ RESET PROGRESS BAR
         self.batch_progress["value"] = 0
         self.batch_progress["maximum"] = total
         self.lbl_batch_percent.config(text="0%")
@@ -480,7 +471,6 @@ class ImageProcessingApp:
             cv2.imwrite(out_path, img)
             count += 1
 
-            # ✅ CẬP NHẬT PROGRESS
             self.batch_progress["value"] = i
             percent = int((i / total) * 100)
             self.lbl_batch_percent.config(text=f"{percent}%")

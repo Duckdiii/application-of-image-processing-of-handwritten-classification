@@ -34,7 +34,7 @@ if torch.cuda.is_available():
     print(f"✓ GPU được phát hiện: {torch.cuda.get_device_name(0)}")
 else:
     DEVICE = 'cpu'
-    print("⚠ GPU không được phát hiện, dùng CPU")
+    print("GPU không được phát hiện, dùng CPU")
 
 
 class YOLOv8Detector:
