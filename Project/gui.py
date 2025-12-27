@@ -94,27 +94,27 @@ class ImageProcessingApp:
             "dilation")).pack(fill="x", padx=20, pady=2)
         tk.Button(self.frame_controls, text="Erosion (Co)", command=lambda: self.set_mode(
             "erosion")).pack(fill="x", padx=20, pady=2)
-        
+
         # Slider ?i?u ch?nh tham s? (Kernel size)
         tk.Label(self.frame_controls, text="Kích thước Kernel / Mức ??:",
-                bg="#5DADE2").pack(pady=(12, 4))
+                 bg="#5DADE2").pack(pady=(12, 4))
         self.slider_kernel = tk.Scale(self.frame_controls, from_=1, to=21,
-                                    orient="horizontal", bg="#5DADE2", command=self.on_slider_change)
+                                      orient="horizontal", bg="#5DADE2", command=self.on_slider_change)
         self.slider_kernel.set(3)
         self.slider_kernel.pack(fill="x", padx=20, pady=(0, 6))
         tk.Button(self.frame_controls, text="Áp dụng & Gi? (Chain)",
-            command=self.apply_and_commit,
-            bg="#27AE60", fg="white").pack(fill="x", padx=20, pady=(6, 2))
+                  command=self.apply_and_commit,
+                  bg="#27AE60", fg="white").pack(fill="x", padx=20, pady=(6, 2))
 
         tk.Button(self.frame_controls, text="Xem thử (Test)",
-            command=self.test_current_mode,
-            bg="#F39C12", fg="white").pack(fill="x", padx=20, pady=(2, 8))
+                  command=self.test_current_mode,
+                  bg="#F39C12", fg="white").pack(fill="x", padx=20, pady=(2, 8))
         #   N?t segmentation v? classification model
-        tk.Button(self.frame_controls, text="Segmentation (Phân đoạn)", 
-            command=self.open_segmentation_window).pack(fill="x", padx=20, pady=2)
+        tk.Button(self.frame_controls, text="Segmentation (Phân đoạn)",
+                  command=self.open_segmentation_window).pack(fill="x", padx=20, pady=2)
 
-        tk.Button(self.frame_controls, text="Classification (Phân loại)", 
-            command=self.open_classification_window).pack(fill="x", padx=20, pady=6)
+        tk.Button(self.frame_controls, text="Classification (Phân loại)",
+                  command=self.open_classification_window).pack(fill="x", padx=20, pady=6)
         # --- KHU V?C BATCH PREPROCESSING CHO TO?N B? DATASET ---
         batch_frame = tk.LabelFrame(
             self.frame_controls,
@@ -143,7 +143,8 @@ class ImageProcessingApp:
         tk.Checkbutton(row_g, text="Gaussian Blur",
                        variable=self.var_batch_gaussian,
                        bg="#5DADE2").pack(side="left")
-        tk.Label(row_g, text="k:", bg="#5DADE2").pack(side="left", padx=(10, 2))
+        tk.Label(row_g, text="k:", bg="#5DADE2").pack(
+            side="left", padx=(10, 2))
         self.entry_k_gaussian = tk.Entry(row_g, width=4)
         self.entry_k_gaussian.insert(0, "3")
         self.entry_k_gaussian.pack(side="left")
@@ -154,7 +155,8 @@ class ImageProcessingApp:
         tk.Checkbutton(row_m, text="Median Filter",
                        variable=self.var_batch_median,
                        bg="#5DADE2").pack(side="left")
-        tk.Label(row_m, text="k:", bg="#5DADE2").pack(side="left", padx=(10, 2))
+        tk.Label(row_m, text="k:", bg="#5DADE2").pack(
+            side="left", padx=(10, 2))
         self.entry_k_median = tk.Entry(row_m, width=4)
         self.entry_k_median.insert(0, "3")
         self.entry_k_median.pack(side="left")
@@ -165,7 +167,8 @@ class ImageProcessingApp:
         tk.Checkbutton(row_d, text="Dilation (Giãn)",
                        variable=self.var_batch_dilation,
                        bg="#5DADE2").pack(side="left")
-        tk.Label(row_d, text="k:", bg="#5DADE2").pack(side="left", padx=(10, 2))
+        tk.Label(row_d, text="k:", bg="#5DADE2").pack(
+            side="left", padx=(10, 2))
         self.entry_k_dilation = tk.Entry(row_d, width=4)
         self.entry_k_dilation.insert(0, "3")
         self.entry_k_dilation.pack(side="left")
@@ -176,15 +179,16 @@ class ImageProcessingApp:
         tk.Checkbutton(row_e, text="Erosion (Co)",
                        variable=self.var_batch_erosion,
                        bg="#5DADE2").pack(side="left")
-        tk.Label(row_e, text="k:", bg="#5DADE2").pack(side="left", padx=(10, 2))
+        tk.Label(row_e, text="k:", bg="#5DADE2").pack(
+            side="left", padx=(10, 2))
         self.entry_k_erosion = tk.Entry(row_e, width=4)
         self.entry_k_erosion.insert(0, "3")
         self.entry_k_erosion.pack(side="left")
 
         # N?t ch?y batch
-        tk.Button(batch_frame, text="X? l? to?n b? th? m?c",
-                command=self.batch_preprocess_folder,
-                bg="#1ABC9C", fg="white").pack(fill="x", padx=5, pady=(8, 5))
+        tk.Button(batch_frame, text="Xu ly toàn bộ thư mục",
+                  command=self.batch_preprocess_folder,
+                  bg="#1ABC9C", fg="white").pack(fill="x", padx=5, pady=(8, 5))
         # Progress bar
         self.batch_progress = ttk.Progressbar(
             batch_frame,
@@ -224,24 +228,27 @@ class ImageProcessingApp:
         self.canvas_gallery.create_window(
             (0, 0), window=self.gallery_content, anchor="nw")
         self.canvas_gallery.configure(
-            yscrollcommand=self.scrollbar_gallery.set )
+            yscrollcommand=self.scrollbar_gallery.set)
 
         self.canvas_gallery.pack(side="left", fill="both", expand=True)
         self.scrollbar_gallery.pack(side="right", fill="y")
 
     def open_segmentation_window(self):
         if self.image_path is None:
-            messagebox.showwarning("Cảnh báo", "Vui lòng mở ảnh trước khi segmentation!")
+            messagebox.showwarning(
+                "Cảnh báo", "Vui lòng mở ảnh trước khi segmentation!")
             return
         seg_window = tk.Toplevel(self.root)
         SegmentationUI(seg_window, self.image_path)
 
     def open_classification_window(self):
         if self.image_path is None:
-            messagebox.showwarning("Cảnh báo", "Vui lòng mở ảnh trước khi classification!")
+            messagebox.showwarning(
+                "Cảnh báo", "Vui lòng mở ảnh trước khi classification!")
             return
         clf_window = tk.Toplevel(self.root)
         ClassificationUI(clf_window, self.image_path)
+
     def load_folder(self):
         folder_selected = filedialog.askdirectory()
         if folder_selected:
@@ -285,6 +292,7 @@ class ImageProcessingApp:
 
         except Exception as e:
             messagebox.showerror("Lỗi", f"Không thể đọc thư mục: {e}")
+
     def open_image(self):
         from tkinter import filedialog
         import cv2
@@ -305,6 +313,7 @@ class ImageProcessingApp:
 
         # Hiá»ƒn thá»‹ áº£nh
         self.display_image(self.original_image)
+
     def display_original(self, image_path):
         try:
             self.original_cv_image = cv2.imread(image_path)
@@ -323,7 +332,6 @@ class ImageProcessingApp:
 
             self.image_path = image_path
 
-
         except Exception as e:
             messagebox.showerror("Lỗi hiển thị", f"Không thể tải ảnh: {e}")
 
@@ -340,7 +348,6 @@ class ImageProcessingApp:
         else:
             messagebox.showwarning("Cảnh báo", "Không có ảnh gốc để reset.")
 
-    
     def save_image_preprocessing(self):
         """Lưu ảnh đã xử lý vào thư mục preprocessing."""
         if self.processed_cv_image is None:
@@ -411,6 +418,7 @@ class ImageProcessingApp:
 
     def process_image(self):
         self.test_current_mode()
+
     def _get_kernel_from_entry(self, entry_widget):
         """Parse kernel value from entry; ensure odd and positive, fallback to 3."""
         try:
@@ -422,9 +430,11 @@ class ImageProcessingApp:
         if k % 2 == 0:
             k += 1
         return k
+
     def batch_preprocess_folder(self):
         if not self.current_folder_path:
-            messagebox.showwarning("Cảnh báo", "Vui lòng chọn thư mục ảnh trước!")
+            messagebox.showwarning(
+                "Cảnh báo", "Vui lòng chọn thư mục ảnh trước!")
             return
 
         output_dir = config.ARCHIVE_PREPROCESSING_DIR
@@ -432,7 +442,7 @@ class ImageProcessingApp:
 
         valid_exts = (".jpg", ".jpeg", ".png", ".bmp")
         files = [f for f in os.listdir(self.current_folder_path)
-                if f.lower().endswith(valid_exts)]
+                 if f.lower().endswith(valid_exts)]
 
         if not files:
             messagebox.showwarning("Thông báo", "Thư mục không có ảnh hợp lệ.")
@@ -440,9 +450,9 @@ class ImageProcessingApp:
 
         # ✅ Lấy KERNEL RIÊNG
         k_gaussian = self._get_kernel_from_entry(self.entry_k_gaussian)
-        k_median   = self._get_kernel_from_entry(self.entry_k_median)
+        k_median = self._get_kernel_from_entry(self.entry_k_median)
         k_dilation = self._get_kernel_from_entry(self.entry_k_dilation)
-        k_erosion  = self._get_kernel_from_entry(self.entry_k_erosion)
+        k_erosion = self._get_kernel_from_entry(self.entry_k_erosion)
 
         total = len(files)
         count = 0
@@ -490,6 +500,7 @@ class ImageProcessingApp:
             "Hoàn thành",
             f"Đã xử lý xong {count}/{total} ảnh.\nLưu tại:\n{output_dir}"
         )
+
     def _apply_current_mode(self, commit=True):
         if self.original_cv_image is None or self.current_mode is None:
             return
@@ -510,6 +521,7 @@ class ImageProcessingApp:
             self.processed_cv_image = temp
 
         self._show_processed(temp)
+
     def test_current_mode(self):
         self._apply_current_mode(commit=True)
 
@@ -533,6 +545,7 @@ class ImageProcessingApp:
             return apply_erosion(img, k_size)
 
         return img
+
     def _show_processed(self, img):
         if len(img.shape) == 2:
             display_rgb = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
